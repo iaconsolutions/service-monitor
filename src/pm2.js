@@ -67,7 +67,7 @@ function listProcessesOnline() {
 
         sendAlert(msg)
 
-        setTimeout(listProcessesOnline, 300000)
+        setTimeout(listProcessesOnline, 3600000)
     })
 }
 
