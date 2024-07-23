@@ -62,7 +62,7 @@ function listProcessesOnline() {
         processDescriptionList.forEach((process) => {
             const { name, pm2_env } = process
             const { status } = pm2_env
-            msg += `- Nome: ${name}, Status: ${traduzirStatus(status)}\n`
+            msg += `• [${name}]: ${traduzirStatus(status)}\n`
         })
 
         sendAlert(msg)
