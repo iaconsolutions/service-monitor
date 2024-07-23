@@ -5,19 +5,19 @@ require('./config/env')
 function traduzirStatus(status) {
     switch (status) {
         case 'online':
-            return 'online';
+            return 'online'
         case 'stopping':
-            return 'parando';
+            return 'parando'
         case 'stopped':
-            return 'parado';
+            return 'parado'
         case 'launching':
-            return 'iniciando';
+            return 'iniciando'
         case 'errored':
-            return 'com erro';
+            return 'com erro'
         case 'one-launch-status':
-            return 'em status de um único lançamento';
+            return 'em status de um único lançamento'
         default:
-            return 'desconhecido';
+            return 'desconhecido'
     }
 }
 
@@ -26,67 +26,57 @@ function getUsers() {
     return users
 }
 
-
 function monitorProcesses() {
-    pm2.connect((err) => {
+    pm2.list((err, processDescriptionList) => {
         if (err) {
             console.error(err)
-            process.exit(2)
+            pm2.disconnect()
+            return
         }
 
-        pm2.list((err, processDescriptionList) => {
-            if (err) {
-                console.error(err)
-                process.exit(2)
+        processDescriptionList.forEach((process) => {
+            if (process.pm2_env.status !== 'online') {
+                const { name, pm2_env } = process
+                const { status } = pm2_env
+                const users = getUsers()
+                const msg = `${users} ⚠️ Alerta: O serviço ${name} está atualmente ${traduzirStatus(status)}.`
+
+                sendAlert(msg)
             }
-
-            processDescriptionList.forEach((process) => {
-                if (process.pm2_env.status !== 'online') {
-                    const { name, pm2_env } = process
-                    const { status } = pm2_env
-                    const users = getUsers()
-                    const msg = `${users} ⚠️ Alerta: O serviço ${name} está atualmente ${traduzirStatus(status)}.`
-
-                    sendAlert(msg)
-                }
-            })
-
-            pm2.disconnect()
-
-            setTimeout(monitorProcesses, 15000)
         })
+
+        setTimeout(monitorProcesses, 30000)
     })
 }
 
 function listProcessesOnline() {
-    pm2.connect((err) => {
+    pm2.list((err, processDescriptionList) => {
         if (err) {
             console.error(err)
-            process.exit(2)
+            pm2.disconnect()
+            return
         }
 
-        pm2.list((err, processDescriptionList) => {
-            if (err) {
-                console.error(err)
-                process.exit(2)
-            }
+        let msg = '📋 Lista dos serviços:\n'
 
-            let msg = '📋 Lista dos serviços:\n';
-
-            processDescriptionList.forEach((process) => {
-                const { name, pm2_env } = process
-                const { status } = pm2_env
-                msg += `- Nome: ${name}, Status: ${traduzirStatus(status)}\n`
-            })
-
-            sendAlert(msg)
-
-            pm2.disconnect()
-
-            setTimeout(listProcessesOnline, 300000)
+        processDescriptionList.forEach((process) => {
+            const { name, pm2_env } = process
+            const { status } = pm2_env
+            msg += `- Nome: ${name}, Status: ${traduzirStatus(status)}\n`
         })
+
+        sendAlert(msg)
+
+        setTimeout(listProcessesOnline, 300000)
     })
 }
 
-listProcessesOnline()
-monitorProcesses()
+pm2.connect((err) => {
+    if (err) {
+        console.error(err)
+        process.exit(2)
+    }
+
+    monitorProcesses()
+    listProcessesOnline()
+})
