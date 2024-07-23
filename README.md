@@ -12,7 +12,7 @@ Este projeto é um serviço de monitoramento que verifica o status de processos 
 
 - Node.js (v14 ou superior)
 - PM2
-- [alert-api](https://github.com/iaconsolutions/alert-api)
+- [Telegram Alert Microservice](https://github.com/iaconsolutions/telegram-alert-microservice)
 - ID do chat ou grupo do Telegram
 
 ## Instalação
