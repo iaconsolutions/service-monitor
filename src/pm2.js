@@ -21,6 +21,15 @@ function traduzirStatus(status) {
     }
 }
 
+function formatStatus(status) {
+    switch (status) {
+        case 'online':
+            return '🟢'
+        default:
+            return '🔴'
+    }
+}
+
 function getUsers() {
     const users = process.env.USERS ?? ''
     return users
@@ -39,7 +48,10 @@ function monitorProcesses() {
                 const { name, pm2_env } = process
                 const { status } = pm2_env
                 const users = getUsers()
-                const msg = `${users} ⚠️ Alerta: O serviço ${name} está atualmente ${traduzirStatus(status)}.`
+                const msg = `
+                    ${users} ⚠️ Alerta: O serviço ${name} está atualmente ${traduzirStatus(status)}.\n
+                    ${formatStatus(status)} [${name}]: ${traduzirStatus(status)}
+                `
 
                 sendAlert(msg)
             }
@@ -62,7 +74,7 @@ function listProcessesOnline() {
         processDescriptionList.forEach((process) => {
             const { name, pm2_env } = process
             const { status } = pm2_env
-            msg += `• [${name}]: ${traduzirStatus(status)}\n`
+            msg += `${formatStatus(status)} [${name}]: ${traduzirStatus(status)}\n`
         })
 
         sendAlert(msg)
